@@ -1,18 +1,18 @@
 package goutils
 
-type Node struct {
+type QueueNode struct {
 	Item string
-	next *Node
+	next *QueueNode
 }
 
 type Queue struct {
-	Front *Node
-	Back  *Node
+	Front *QueueNode
+	Back  *QueueNode
 	Size  int
 }
 
 func (p *Queue) Enqueue(name string) error {
-	newNode := &Node{
+	newNode := &QueueNode{
 		Item: name,
 		next: nil,
 	}
