@@ -1,12 +1,12 @@
 package goutils
 
 type Stack struct {
-	Top  *BSTNode
+	Top  *Node
 	Size int
 }
 
 func (p *Stack) Push(name string) error {
-	newNode := &BSTNode{
+	newNode := &Node{
 		Item: name,
 		next: nil,
 	}
