@@ -9,24 +9,11 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 )
 
-// WeightedBuilder is a type that can add nodes and weighted edges.
 type WeightedBuilder interface {
 	AddNode(graph.Node)
 	SetWeightedEdge(graph.WeightedEdge)
 }
 
-// Prim generates a minimum spanning tree of g by greedy tree extension, placing
-// the result in the destination, dst. If the edge weights of g are distinct
-// it will be the unique minimum spanning tree of g. The destination is not cleared
-// first. The weight of the minimum spanning tree is returned. If g is not connected,
-// a minimum spanning forest will be constructed in dst and the sum of minimum
-// spanning tree weights will be returned.
-//
-// Nodes and Edges from g are used to construct dst, so if the Node and Edge
-// types used in g are pointer or reference-like, then the values will be shared
-// between the graphs.
-//
-// If dst has nodes that exist in g, Prim will panic.
 func Prim(dst WeightedBuilder, g graph.WeightedUndirected) float64 {
 	nodes := graph.NodesOf(g.Nodes())
 	if len(nodes) == 0 {
@@ -78,10 +65,6 @@ func Prim(dst WeightedBuilder, g graph.WeightedUndirected) float64 {
 	return w
 }
 
-// primQueue is a Prim's priority queue. The priority queue is a
-// queue of edge From nodes keyed on the minimum edge weight to
-// a node in the set of nodes already connected to the minimum
-// spanning forest.
 type primQueue struct {
 	indexOf map[int64]int
 	nodes   []simple.WeightedEdge
@@ -114,9 +97,6 @@ func (q *primQueue) Pop() interface{} {
 	return n
 }
 
-// key returns the key for the node u and whether the node is
-// in the queue. If the node is not in the queue, key is returned
-// as +Inf.
 func (q *primQueue) key(u graph.Node) (key float64, ok bool) {
 	i, ok := q.indexOf[u.ID()]
 	if !ok {
@@ -125,8 +105,6 @@ func (q *primQueue) key(u graph.Node) (key float64, ok bool) {
 	return q.nodes[i].Weight(), ok
 }
 
-// update updates u's position in the queue with the new closest
-// MST-connected neighbour, v, and the key weight between u and v.
 func (q *primQueue) update(u, v graph.Node, key float64) {
 	id := u.ID()
 	i, ok := q.indexOf[id]
@@ -138,25 +116,11 @@ func (q *primQueue) update(u, v graph.Node, key float64) {
 	heap.Fix(q, i)
 }
 
-// UndirectedWeightLister is an undirected graph that returns edge weights and
-// the set of edges in the graph.
 type UndirectedWeightLister interface {
 	graph.WeightedUndirected
 	WeightedEdges() graph.WeightedEdges
 }
 
-// Kruskal generates a minimum spanning tree of g by greedy tree coalescence, placing
-// the result in the destination, dst. If the edge weights of g are distinct
-// it will be the unique minimum spanning tree of g. The destination is not cleared
-// first. The weight of the minimum spanning tree is returned. If g is not connected,
-// a minimum spanning forest will be constructed in dst and the sum of minimum
-// spanning tree weights will be returned.
-//
-// Nodes and Edges from g are used to construct dst, so if the Node and Edge
-// types used in g are pointer or reference-like, then the values will be shared
-// between the graphs.
-//
-// If dst has nodes that exist in g, Kruskal will panic.
 func Kruskal(dst WeightedBuilder, g UndirectedWeightLister) float64 {
 	edges := graph.WeightedEdgesOf(g.WeightedEdges())
 	sort.Sort(byWeight(edges))
@@ -186,10 +150,8 @@ func (e byWeight) Len() int           { return len(e) }
 func (e byWeight) Less(i, j int) bool { return e[i].Weight() < e[j].Weight() }
 func (e byWeight) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
 
-// djSet implements a disjoint set finder using the union-find algorithm.
 type djSet map[int64]*dsNode
 
-// add adds e to the collection of sets held by the disjoint set.
 func (s djSet) add(e int64) {
 	if _, ok := s[e]; ok {
 		return
@@ -197,8 +159,6 @@ func (s djSet) add(e int64) {
 	s[e] = &dsNode{}
 }
 
-// union joins two sets a and b within the collection of sets held by
-// the disjoint set.
 func (djSet) union(a, b *dsNode) {
 	ra := find(a)
 	rb := find(b)
@@ -215,7 +175,6 @@ func (djSet) union(a, b *dsNode) {
 	}
 }
 
-// find returns the root of the set containing e.
 func (s djSet) find(e int64) *dsNode {
 	n, ok := s[e]
 	if !ok {
@@ -224,14 +183,12 @@ func (s djSet) find(e int64) *dsNode {
 	return find(n)
 }
 
-// find returns the root of the set containing the set node, n.
 func find(n *dsNode) *dsNode {
 	for ; n.parent != nil; n = n.parent {
 	}
 	return n
 }
 
-// dsNode is a disjoint set element.
 type dsNode struct {
 	parent *dsNode
 	rank   int
